@@ -11,10 +11,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--file_path', dest='file_path', default='../data/raw/trainset_cut300000.txt', type=str, help='输入需要统计词频的数据集')
 args = parser.parse_args()
 
+
 def statistics(fp):
+    """
+        对数据集进行统计
 
-    print('数据集位置: %s' % os.path.abspath(fp))
+    参数:
+        fp: 数据集的位置
 
+    返回:
+        包含的词汇列表，按词频降序
+    """
     vocab = defaultdict(int)
 
     with open(fp, 'r', encoding='utf8') as fr:
@@ -39,12 +46,13 @@ def statistics(fp):
 
     vocab = dict(sorted(vocab.items(), key=lambda x: x[1], reverse=True))  # 词频降序排列
 
-    print('样本总数: %d' % data_num)
-    print('post平均长度: %.2f' % (post_len / data_num))
-    print('response平均长度: %.2f' % (response_len / data_num))
+    print('数据集位置: %s' % os.path.abspath(fp))
+    print('样本总数: %d' % data_num, end=', ')
+    print('post平均长度: %.2f' % (post_len / data_num), end=', ')
+    print('response平均长度: %.2f' % (response_len / data_num), end=', ')
     print('包含词汇总数: %d' % len(vocab))
-    print('词频:', vocab)
-    print('词汇表:', vocab.keys())
+    # print('词频:', vocab)
+    # print('词汇表:', vocab.keys())
 
     return list(vocab.keys())
 
