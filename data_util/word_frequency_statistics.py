@@ -19,8 +19,8 @@ def statistics(fp):
 
     with open(fp, 'r', encoding='utf8') as fr:
         data_num = 0  # 统计样本总数
-        post_len = 0
-        response_len = 0
+        post_len = 0  # 用于统计post平均长度
+        response_len = 0  # 用于统计response平均长度
 
         for line in fr:
             data_num += 1
