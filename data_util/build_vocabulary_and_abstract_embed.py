@@ -42,8 +42,8 @@ def build_vocabulary(trainp, vp, testp, vn=30000):
     validset_vob_len = len(validset_vob)  # 验证集词汇表大小
     testset_vob_len = len(testset_vob)  # 测试集词汇表大小
 
-    vocab_num = min(vn, len(trainset_vob))  # 截取词汇表大小
-    vocab = trainset_vob[:vocab_num]  # 最终词汇表
+    num_vocab = min(vn, len(trainset_vob))  # 截取词汇表大小
+    vocab = trainset_vob[:num_vocab]  # 最终词汇表
 
     cover_valid = 100.0 * len(set(vocab) & set(validset_vob)) / validset_vob_len
     cover_test = 100.0 * len(set(vocab) & set(testset_vob)) / testset_vob_len

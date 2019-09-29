@@ -7,17 +7,17 @@ class DataIterator(object):
     def __init__(self, data, batch_size):
         self.data = data
         self.batch_size = batch_size
-        self.data_num = len(data)
+        self.num_data = len(data)
         self.st = 0
         self.ed = 0
 
     def get_batch_data(self):
 
-        while(self.st < self.data_num):
+        while(self.st < self.num_data):
 
             self.ed = self.st + self.batch_size
 
-            if self.ed < self.data_num:
+            if self.ed < self.num_data:
                 data = self.data[self.st: self.ed]
             else:
                 data = self.data[self.st:]
