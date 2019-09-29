@@ -3,7 +3,6 @@
 '''
 
 class Config(object):
-    super().__init__()
 
     # 编码器参数
 
@@ -12,4 +11,6 @@ class Config(object):
     # 优化器参数
 
     #
+
+    pass
 
