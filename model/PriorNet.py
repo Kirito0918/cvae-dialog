@@ -11,6 +11,8 @@ class PriorNet(nn.Module):
     def __init__(self, dim_x,  # post编码维度
                  dim_latent,  # 潜变量维度
                  dims):  # 隐藏层维度
+        super(PriorNet, self).__init__()
+
         assert len(dims) >= 1  # 至少两层感知机8
 
         dims = [dim_x] + dims + [dim_latent*2]

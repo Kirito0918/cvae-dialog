@@ -10,6 +10,7 @@ from PrepareState import PrepareState
 class Model(nn.Module):
 
     def __init__(self, config):
+        super(Model, self).__init__()
 
         self.config = config
 
@@ -59,7 +60,7 @@ class Model(nn.Module):
 
         # 输出层
         self.projector = nn.Sequential(
-            nn.Linear('projector/linear', config.decoder_output_size, config.num_vocab),
+            nn.Linear(config.decoder_output_size, config.num_vocab),
             nn.Softmax()
         )
 
@@ -180,6 +181,30 @@ class Model(nn.Module):
             output_vocab = self.projector(outputs)  # [batch, seq-1, num_vocab]
 
             return output_vocab, _mu, _logvar, mu, logvar
+
+    # 统计参数
+    def print_parameters(self):
+
+        def statistic_param(params):
+            total_num = 0  # 参数总数
+            for param in params:
+                num = 1
+                if param.requires_grad:
+                    size = param.size()
+                    for dim in size:
+                        num *= dim
+                total_num += num
+            return total_num
+
+        print("嵌入层参数个数: %d" % statistic_param(self.embedding.parameters()))
+        print("post编码器参数个数: %d" % statistic_param(self.post_encoder.parameters()))
+        print("response编码器参数个数: %d" % statistic_param(self.response_encoder.parameters()))
+        print("先验网络参数个数: %d" % statistic_param(self.prior_net.parameters()))
+        print("识别网络参数个数: %d" % statistic_param(self.recognize_net.parameters()))
+        print("解码器初始状态参数个数: %d" % statistic_param(self.prepare_state.parameters()))
+        print("解码器参数个数: %d" % statistic_param(self.decoder.parameters()))
+        print("输出层参数个数: %d" % statistic_param(self.projector.parameters()))
+        print("参数总数: %d" % statistic_param(self.parameters()))
 
 
 

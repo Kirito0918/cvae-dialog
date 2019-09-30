@@ -1,5 +1,6 @@
 from model.util.config import Config
 from model.model import Model
+import torch
 import argparse
 import json
 import os
@@ -14,7 +15,6 @@ parser.add_argument('--model_path', dest='model_path', default='log', type=str, 
 parser.add_argument('--inference', dest='inference', default=False, type=bool, help='是否测试')
 args = parser.parse_args()
 
-args = dict(args)
 config = Config()
 
 def main():
@@ -22,25 +22,25 @@ def main():
     trainset, validset, testset = [], [], []
 
     # 载入数据集
-    if args['inference']:
-        with open(args['testset_path'], 'r', encoding='utf8') as fr:
+    if args.inference:
+        with open(args.testset_path, 'r', encoding='utf8') as fr:
             for line in fr:
                 testset.append(json.loads(line))
         print('载入测试集%d条' % len(testset))
 
     else:
-        with open(args['trainset_path'], 'r', encoding='utf8') as fr:
+        with open(args.trainset_path, 'r', encoding='utf8') as fr:
             for line in fr:
                 trainset.append(json.loads(line))
         print('载入训练集%d条' % len(trainset))
-        with open(args['validset_path'], 'r', encoding='utf8') as fr:
+        with open(args.validset_path, 'r', encoding='utf8') as fr:
             for line in fr:
                 validset.append(json.loads(line))
         print('载入验证集%d条' % len(validset))
 
     # 创建模型
     model = Model(config)
-    print(model.parameters())
+    model.print_parameters()
 
     # 载入模型
 

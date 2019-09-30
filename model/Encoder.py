@@ -10,8 +10,9 @@ class SentenseEncoder(nn.Module):
                  num_layer,  # rnn层数
                  bidirection=False,  # 是否双向
                  dropout=0):  # dropout
+        super(SentenseEncoder, self).__init__()
 
-        assert cell_type in ['gru', 'lstm']  # 限定rnn类型
+        assert cell_type in ['GRU', 'LSTM']  # 限定rnn类型
         if bidirection:  # 如果双向
             assert output_size % 2 == 0
 

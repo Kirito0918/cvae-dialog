@@ -6,6 +6,7 @@ class PrepareState(nn.Module):
     def __init__(self, dim_input,
                  decoder_output_size,
                  decoder_num_layer):
+        super(PrepareState, self).__init__()
 
         self.num_layer = decoder_num_layer
         self.dim_out = decoder_num_layer

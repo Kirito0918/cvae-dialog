@@ -12,13 +12,13 @@ class Config(object):
     embed_size = 300
 
     # post编码器参数
-    post_encoder_cell_type = 'lstm'  # in ['gru', 'lstm']
+    post_encoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']
     post_encoder_output_size = 300
     post_encoder_num_layer = 2
     post_encoder_bidirection = True
 
     # response编码器参数
-    response_encoder_cell_type = 'lstm'  # in ['gru', 'lstm']
+    response_encoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']
     response_encoder_output_size = 300
     response_encoder_num_layer = 2
     response_encoder_bidirection = True
@@ -33,7 +33,7 @@ class Config(object):
     recognize_dims = [200]
 
     # 解码器参数
-    decoder_cell_type = 'lstm'  # in ['gru', 'lstm']
+    decoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']
     decoder_output_size = 300
     decoder_num_layer = 2
 

@@ -12,6 +12,8 @@ class RecognizeNet(nn.Module):
                  dim_y,  # response编码维度
                  dim_latent,  # 潜变量维度
                  dims):  # 隐藏层维度
+        super(RecognizeNet, self).__init__()
+
         assert len(dims) >= 1  # 至少两层感知机8
 
         dims = [dim_x+dim_y] + dims + [dim_latent*2]

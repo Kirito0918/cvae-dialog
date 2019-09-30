@@ -7,8 +7,9 @@ class Decoder(nn.Module):
                  output_size,  # 输出维度
                  num_layer,  # rnn层数
                  dropout=0):  # dropout
+        super(Decoder, self).__init__()
 
-        assert cell_type in ['gru', 'lstm']  # 限定rnn类型
+        assert cell_type in ['GRU', 'LSTM']  # 限定rnn类型
 
         cell_size = output_size // 2  # rnn维度
 
