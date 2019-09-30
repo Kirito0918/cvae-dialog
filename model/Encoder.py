@@ -40,16 +40,18 @@ class SentenseEncoder(nn.Module):
         if self.bidirection:  # 如果是双向的，对双向进行拼接作为每层的最终状态
 
             if self.cell_type == 'gru':
-                final_state_forward = final_state[0::2]  # [layers, batch, dim]
-                final_state_back = final_state[1::2]  # [layers, batch, dim]
+                final_state_forward = final_state[0::2, :, :]  # [layers, batch, dim]
+                final_state_back = final_state[1::2, :, :]  # [layers, batch, dim]
                 final_state = torch.cat([final_state_forward, final_state_back], 2)  # [layers, batch, dim*2]
 
             else:
                 final_state_h, final_state_c = final_state
-                final_state_h = torch.cat([final_state_h[0::2], final_state_h[1::2]], 2)
-                final_state_c = torch.cat([final_state_c[0::2], final_state_c[1::2]], 2)
+                final_state_h = torch.cat([final_state_h[0::2, :, :], final_state_h[1::2, :, :]], 2)
+                final_state_c = torch.cat([final_state_c[0::2, :, :], final_state_c[1::2, :, :]], 2)
                 final_state = (final_state_h, final_state_c)
 
+        # output = [seq, batch, dim]
+        # final_state = [layers, batch, dim]
         return output, final_state
 
 
