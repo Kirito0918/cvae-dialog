@@ -1,10 +1,13 @@
-# from model.util.data_iterator import DataIterator
-#
-data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-#
-# di = DataIterator(data, 4)
-# for item in di.get_batch_data():
-#     print(item)
+import torch
 
-print(data[:-1])
+done1 = torch.LongTensor([3, 1, 4])
+
+done2 = done1.argmax(0, keepdim=True)
+
+print(done2)
+
+
+
+
+
 

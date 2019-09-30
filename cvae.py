@@ -1,4 +1,5 @@
 from model.util.config import Config
+from model.model import Model
 import argparse
 import json
 import os
@@ -38,6 +39,8 @@ def main():
         print('载入验证集%d条' % len(validset))
 
     # 创建模型
+    model = Model(config)
+    print(model.parameters())
 
     # 载入模型
 
