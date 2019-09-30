@@ -5,6 +5,7 @@
 import torch
 import torch.nn as nn
 
+
 class RecognizeNet(nn.Module):
 
     def __init__(self, dim_x,  # post编码维度

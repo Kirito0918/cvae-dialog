@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-class SentenseEncoder(nn.Module):
+class Decoder(nn.Module):
 
     def __init__(self, cell_type,  # rnn类型
                  input_size,  # 输入维度
@@ -26,16 +25,13 @@ class SentenseEncoder(nn.Module):
             bidirectional=bidirection,
             dropout=dropout)
 
-    def forward(self, input,  # [seq, batch, dim]
-                length):  # [batch]
 
-        input = pack_padded_sequence(input, length)  #
+    def forward(self, input,  # 输入 [seq, batch, dim] 或者单步输入 [1, batch, dim]
+                state):  # 初始状态 [layers*directions, batch, dim]
 
         # output = [seq, batch, dim*directions]  每个时间步的输出
         # final_state = [layers*directions, batch, dim]  # 每一层的最终状态
-        output, final_state = self.rnncell(input)
-
-        output = pad_packed_sequence(output)[0]  #
+        output, final_state = self.rnncell(input, state)
 
         if self.bidirection:  # 如果是双向的，对双向进行拼接作为每层的最终状态
 
@@ -51,6 +47,3 @@ class SentenseEncoder(nn.Module):
                 final_state = (final_state_h, final_state_c)
 
         return output, final_state
-
-
-
