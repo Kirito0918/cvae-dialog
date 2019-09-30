@@ -21,7 +21,7 @@ class RecognizeNet(nn.Module):
         self.dim_latent = dim_latent
         self.mlp = nn.Sequential()
 
-        # 多层感知机中间层
+        # 多层感知机
         for idx, (input, output) in enumerate(zip(dims_input[:-1], dims_output[:-1])):
 
             self.mlp.add_module('RecognizeNet/Linear%d' % idx, nn.Linear(input, output))

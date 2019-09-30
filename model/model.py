@@ -10,6 +10,8 @@ class Model(nn.Module):
 
     def __init__(self, config):
 
+        self.config = config
+
         # 定义嵌入层
         self.embedding = WordEmbedding(config.num_vocab,  # 词汇表大小
                                        config.embed_size,  # 嵌入层维度
@@ -42,6 +44,8 @@ class Model(nn.Module):
                                           config.dim_latent,  # 潜变量维度
                                           config.recognize_dims)  # 隐藏层维度
 
+        self.
+
         # 解码器
         self.decoder = Decoder(config.decoder_cell_type,  # rnn类型
                                config.embed_size,  # 输入维度
@@ -64,6 +68,7 @@ class Model(nn.Module):
         len_post = input['len_post']  # [batch]
         id_response = input['response']
         len_response = input['len_response']
+        batch_size = id_post.size()[0]
 
         if inference:  # 测试
             pass
@@ -78,4 +83,17 @@ class Model(nn.Module):
             _, response_state = self.response_encoder(embed_response.transponse(0, 1))
 
             x = post_state[-1, :, :]  # [batch, dim]
+            y = response_state[-1, :, :]  # [batch, dim]
+
+            # p(z|x)
+            _mu, _logvar = self.prior_net(x)  # [batch, latent]
+
+            # p(z|x,y)
+            mu, logvar = self.recognize_net(x, y)  # [batch, latent]
+
+            # 采样
+            nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
+
+            # 重参数化
+            z = mu + torch.exp(0.5*logvar)  # [batch, latent]
 
