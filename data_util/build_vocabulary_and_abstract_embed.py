@@ -17,6 +17,7 @@ parser.add_argument('--num_vocabulary', dest='num_vocabulary', default=39000, ty
 parser.add_argument('--pad_token', dest='pad_token', default='<pad>', type=str, help='pad的记法')
 parser.add_argument('--start_token', dest='start_token', default='<s>', type=str, help='start的记法')
 parser.add_argument('--end_token', dest='end_token', default='</s>', type=str, help='end的记法')
+parser.add_argument('--unk_token', dest='unk_token', default='<unk>', type=str, help='unk的记法')
 args = parser.parse_args()
 
 
@@ -33,7 +34,7 @@ def build_vocabulary(trainp, vp, testp, vn=30000):
     返回:
         最终词汇表的列表
     """
-    vob_head = [args.pad_token] + [args.start_token] + [args.end_token]
+    vob_head = [args.pad_token] + [args.start_token] + [args.end_token] + [args.unk_token]
     trainset_vob = vob_head + statistics(trainp)  # 训练集词汇表
     validset_vob = vob_head + statistics(vp)  # 验证集词汇表
     testset_vob = vob_head + statistics(testp)  # 测试集词汇表

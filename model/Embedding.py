@@ -9,6 +9,7 @@ class WordEmbedding(nn.Module):
 
         self.embedding = nn.Embedding(num_vocab, embed_size, padding_idx=pad_id)
 
+
     def forward(self, input):  # [batch, len]
 
         embeded = self.embedding(input)
