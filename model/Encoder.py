@@ -30,7 +30,7 @@ class SentenseEncoder(nn.Module):
     def forward(self, input,  # [seq, batch, dim]
                 length):  # [batch]
 
-        input = pack_padded_sequence(input, length)  #
+        input = pack_padded_sequence(input, length, enforce_sorted=False)  #
 
         # output = [seq, batch, dim*directions]  每个时间步的输出
         # final_state = [layers*directions, batch, dim]  # 每一层的最终状态

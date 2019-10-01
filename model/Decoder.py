@@ -11,12 +11,10 @@ class Decoder(nn.Module):
 
         assert cell_type in ['GRU', 'LSTM']  # 限定rnn类型
 
-        cell_size = output_size // 2  # rnn维度
-
         self.cell_type = cell_type
         self.rnncell = getattr(nn, cell_type)(  # rnncell
             input_size=input_size,
-            hidden_size=cell_size,
+            hidden_size=output_size,
             num_layers=num_layer,
             dropout=dropout)
 

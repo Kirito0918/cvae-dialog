@@ -48,6 +48,7 @@ class Model(nn.Module):
 
         # 初始化解码器状态
         self.prepare_state = PrepareState(config.post_encoder_output_size+config.dim_latent,
+                                          config.decoder_cell_type,
                                           config.decoder_output_size,
                                           config.decoder_num_layer)
 
@@ -83,6 +84,9 @@ class Model(nn.Module):
 
             # state = [layers, batch, dim]
             _, post_state = self.post_encoder(embed_post.transpose(0, 1), len_post)
+
+            if isinstance(post_state, tuple):
+                post_state = post_state[0]
 
             x = post_state[-1, :, :]  # [batch, dim]
 
@@ -143,7 +147,13 @@ class Model(nn.Module):
 
             # state = [layers, batch, dim]
             _, post_state = self.post_encoder(embed_post.transpose(0, 1), len_post)
-            _, response_state = self.response_encoder(embed_response.transponse(0, 1), len_response)
+            _, response_state = self.response_encoder(embed_response.transpose(0, 1), len_response)
+
+            if isinstance(post_state, tuple):
+                post_state = post_state[0]
+
+            if isinstance(response_state, tuple):
+                response_state = response_state[0]
 
             x = post_state[-1, :, :]  # [batch, dim]
             y = response_state[-1, :, :]  # [batch, dim]
@@ -206,6 +216,38 @@ class Model(nn.Module):
         print("输出层参数个数: %d" % statistic_param(self.projector.parameters()))
         print("参数总数: %d" % statistic_param(self.parameters()))
 
+
+    # 保存模型
+    def save_model(self, epoch, global_step, path):
+
+        torch.save({'embedding': self.embedding.cpu().state_dict(),
+                    'post_encoder': self.post_encoder.cpu().state_dict(),
+                    'response_encoder': self.response_encoder.cpu().state_dict(),
+                    'prior_net': self.prior_net.cpu().state_dict(),
+                    'recognize_net': self.recognize_net.cpu().state_dict(),
+                    'prepare_state': self.prepare_state.cpu().state_dict(),
+                    'decoder': self.decoder.cpu().state_dict(),
+                    'projector': self.projector.cpu().state_dict(),
+                    'epoch': epoch,
+                    'global_step': global_step}, path)
+
+
+    # 载入模型
+    def load_model(self, path):
+
+        checkpoint = torch.load(path)
+        self.embedding.load_state_dict(checkpoint['embedding'])
+        self.post_encoder.load_state_dict(checkpoint['post_encoder'])
+        self.response_encoder.load_state_dict(checkpoint['response_encoder'])
+        self.prior_net.load_state_dict(checkpoint['prior_net'])
+        self.recognize_net.load_state_dict(checkpoint['recognize_net'])
+        self.prepare_state.load_state_dict(checkpoint['prepare_state'])
+        self.decoder.load_state_dict(checkpoint['decoder'])
+        self.projector.load_state_dict(checkpoint['projector'])
+        epoch = checkpoint['epoch']
+        global_step = checkpoint['global_step']
+
+        return epoch, global_step
 
 
 

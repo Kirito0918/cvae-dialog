@@ -4,6 +4,7 @@ class Config(object):
     pad_id = 0
     start_id = 1
     end_id = 2
+    unk_id = 3
 
     # 词汇表大小，根据预处理设置
     num_vocab = 39000
@@ -38,8 +39,13 @@ class Config(object):
     decoder_num_layer = 2
 
     # 优化参数
-    dropout = 0
+    batch_size = 32
+    method = 'adam'
+    lr = 0.0001
+    lr_decay = 1.0  # 学习率衰减
+    weight_decay = 0  # 权值decay
+    max_grad_norm = 5
 
-    #
+    dropout = 0
 
 

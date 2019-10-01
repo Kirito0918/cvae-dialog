@@ -1,11 +1,21 @@
-import torch
+import os
+import time
+import random
 
-done1 = torch.LongTensor([3, 1, 4])
+log = 'test'
 
-done2 = done1.argmax(0, keepdim=True)
+print(os.path.exists(log))
 
-print(done2)
+dir = os.walk(log)
 
+for d in dir:
+    print(d)
+
+print(str(int(time.time())))
+
+a = list(range(10))
+random.shuffle(a)
+print(a)
 
 
 
