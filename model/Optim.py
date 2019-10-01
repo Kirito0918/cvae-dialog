@@ -24,9 +24,9 @@ class Optim(object):
         self.params = [p for p in parameters if p.requires_grad]  # 所有需要梯度的参数
 
         if self.method == 'sgd':
-            self.optim = torch.optim.SGD(self.params, lr=self.lr, weight_decay=self.weight_decay)
+            self.optimizer = torch.optim.SGD(self.params, lr=self.lr, weight_decay=self.weight_decay)
         elif self.method == 'adam':
-            self.optim = torch.optim.Adam(self.params, lr=self.lr, weight_decay=self.weight_decay)
+            self.optimizer = torch.optim.Adam(self.params, lr=self.lr, weight_decay=self.weight_decay)
 
 
     # 更新学习率
@@ -34,7 +34,7 @@ class Optim(object):
 
         self.lr = self.lr * self.lr_decay ** epoch  # 计算新的学习率
 
-        for param in self.optim.param_groups:
+        for param in self.optimizer.param_groups:
             param['lr'] = self.lr
 
 
@@ -42,8 +42,8 @@ class Optim(object):
     def step(self):
 
         if self.max_grad_norm:
-            nn.utils.clip_grad_norm(self.params, self.max_grad_norm)
-        self.optim.step()
+            nn.utils.clip_grad_norm_(self.params, self.max_grad_norm)
+        self.optimizer.step()
 
 
 

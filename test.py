@@ -1,21 +1,12 @@
 import os
 import time
 import random
+import numpy
+import torch
 
-log = 'test'
+a = [3, 5, 6]
+print(a-1)
 
-print(os.path.exists(log))
-
-dir = os.walk(log)
-
-for d in dir:
-    print(d)
-
-print(str(int(time.time())))
-
-a = list(range(10))
-random.shuffle(a)
-print(a)
 
 
 

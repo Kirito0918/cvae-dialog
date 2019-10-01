@@ -45,7 +45,7 @@ class Config(object):
     lr_decay = 1.0  # 学习率衰减
     weight_decay = 0  # 权值decay
     max_grad_norm = 5
-
+    kl_step = 40000  # 更新多少次参数之后kl项权值达到1
     dropout = 0
 
 

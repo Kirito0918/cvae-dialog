@@ -62,14 +62,15 @@ class Model(nn.Module):
         # 输出层
         self.projector = nn.Sequential(
             nn.Linear(config.decoder_output_size, config.num_vocab),
-            nn.Softmax()
+            nn.Softmax(-1)
         )
 
 
 
     def forward(self, input,  # input
                 inference=False,
-                max_len=60):
+                max_len=60,
+                gpu=False):
 
         id_post = input['post']  # [batch, seq]
         len_post = input['len_post']  # [batch]
@@ -94,7 +95,10 @@ class Model(nn.Module):
             _mu, _logvar = self.prior_net(x)  # [batch, latent]
 
             # 采样
-            nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
+            if gpu:
+                nz = torch.randn((batch_size, self.config.dim_latent)).cuda()  # [batch, latent]
+            else:
+                nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
 
             # 重参数化
             z = _mu + torch.exp(0.5 * _logvar) * nz  # [batch, latent]
@@ -165,7 +169,10 @@ class Model(nn.Module):
             mu, logvar = self.recognize_net(x, y)  # [batch, latent]
 
             # 采样
-            nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
+            if gpu:
+                nz = torch.randn((batch_size, self.config.dim_latent)).cuda()  # [batch, latent]
+            else:
+                nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
 
             # 重参数化
             z = mu + torch.exp(0.5*logvar) * nz  # [batch, latent]
@@ -220,14 +227,14 @@ class Model(nn.Module):
     # 保存模型
     def save_model(self, epoch, global_step, path):
 
-        torch.save({'embedding': self.embedding.cpu().state_dict(),
-                    'post_encoder': self.post_encoder.cpu().state_dict(),
-                    'response_encoder': self.response_encoder.cpu().state_dict(),
-                    'prior_net': self.prior_net.cpu().state_dict(),
-                    'recognize_net': self.recognize_net.cpu().state_dict(),
-                    'prepare_state': self.prepare_state.cpu().state_dict(),
-                    'decoder': self.decoder.cpu().state_dict(),
-                    'projector': self.projector.cpu().state_dict(),
+        torch.save({'embedding': self.embedding.state_dict(),
+                    'post_encoder': self.post_encoder.state_dict(),
+                    'response_encoder': self.response_encoder.state_dict(),
+                    'prior_net': self.prior_net.state_dict(),
+                    'recognize_net': self.recognize_net.state_dict(),
+                    'prepare_state': self.prepare_state.state_dict(),
+                    'decoder': self.decoder.state_dict(),
+                    'projector': self.projector.state_dict(),
                     'epoch': epoch,
                     'global_step': global_step}, path)
 

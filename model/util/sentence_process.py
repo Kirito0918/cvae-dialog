@@ -20,7 +20,7 @@ class SentenceProcess(object):
         for word in sentence:
 
             if word in self.v2i:
-                idx = self.v2i['word']
+                idx = self.v2i[word]
             else:
                 idx = self.unk_id
 
