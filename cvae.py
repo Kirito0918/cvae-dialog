@@ -24,7 +24,7 @@ parser.add_argument('--log_per_step', dest='log_per_step', default=30000, type=i
 parser.add_argument('--log_path', dest='log_path', default='log', type=str, help='记录模型位置')
 parser.add_argument('--inference', dest='inference', default=False, type=bool, help='是否测试')  #
 parser.add_argument('--max_len', dest='max_len', default=60, type=int, help='测试时最大解码步数')
-parser.add_argument('--model_path', dest='model_path', default='log/run1569973464/004000000037500.model', type=str, help='载入模型位置')  #
+parser.add_argument('--model_path', dest='model_path', default='log/run/.model', type=str, help='载入模型位置')  #
 parser.add_argument('--seed', dest='seed', default=666, type=int, help='随机种子')  #
 parser.add_argument('--gpu', dest='gpu', default=True, type=bool, help='是否使用gpu')  #
 parser.add_argument('--max_epoch', dest='max_epoch', default=30, type=int, help='最大训练epoch')
@@ -295,12 +295,14 @@ def comput_loss(model, data, global_step):
     kld_loss = gaussian_kld(mu, logvar, _mu, _logvar)
 
     # kl退火
-    kld_weight = min(1.0 * global_step / config.kl_step, 1)
+    # kld_weight = min(1.0 * global_step / config.kl_step, 1)  # 一次性退火
+    kld_weight = min(1.0 * (global_step % (2*config.kl_step)) / config.kl_step, 1)  # 周期性退火
 
     # 损失
     loss = nll_loss + kld_weight * kld_loss
 
     return loss.mean(), nll_loss.mean(), kld_loss.mean(), ppl, kld_weight
+
 
 
 # 构建一个用于解码器损失的mask，因为超过本身句子长度的token是没必要计算损失的
