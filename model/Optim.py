@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+# 优化器
 class Optim(object):
 
     def __init__(self, method,  # 优化方法
@@ -34,7 +35,7 @@ class Optim(object):
 
         self.lr = self.lr * self.lr_decay ** epoch  # 计算新的学习率
 
-        for param in self.optimizer.param_groups:
+        for param in self.optimizer.param_groups:  #
             param['lr'] = self.lr
 
 

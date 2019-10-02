@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+# 解码器
 class Decoder(nn.Module):
 
     def __init__(self, cell_type,  # rnn类型

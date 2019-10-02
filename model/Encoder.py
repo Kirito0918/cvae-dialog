@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
+# 编码器
 class SentenseEncoder(nn.Module):
 
     def __init__(self, cell_type,  # rnn类型
@@ -13,10 +14,12 @@ class SentenseEncoder(nn.Module):
         super(SentenseEncoder, self).__init__()
 
         assert cell_type in ['GRU', 'LSTM']  # 限定rnn类型
+
         if bidirection:  # 如果双向
             assert output_size % 2 == 0
-
-        cell_size = output_size // 2  # rnn维度
+            cell_size = output_size // 2  # rnn维度
+        else:
+            cell_size = output_size
 
         self.bidirection = bidirection
         self.cell_type = cell_type
