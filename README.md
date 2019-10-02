@@ -2,10 +2,10 @@
 
 数据集链接：https://share.weiyun.com/5Evg5AN
 
-build_vocabulary_and_abstract_embed.py 可以用来统计数据集的词频
+word_frequency_statistics.py 可以用来统计数据集的词频
 
 流程
-1、word_frequency_statistics.py 统计词频，截取词汇表
+1、build_vocabulary_and_abstract_embed.py 统计词频，截取词汇表
 
 2、cvae.py进行训练
     model\util\config.py更改模型参数
