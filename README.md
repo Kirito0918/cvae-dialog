@@ -1,5 +1,7 @@
 用于对话的cave
 
+数据集链接：https://share.weiyun.com/5Evg5AN
+
 build_vocabulary_and_abstract_embed.py 可以用来统计数据集的词频
 
 流程
