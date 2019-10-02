@@ -7,7 +7,7 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--train_path', dest='train_path', default='../data/raw/trainset_cut300000.txt', type=str, help='训练集位置')
+parser.add_argument('--train_path', dest='train_path', default='../data/raw/trainset.txt', type=str, help='训练集位置')
 parser.add_argument('--valid_path', dest='valid_path', default='../data/raw/validset.txt', type=str, help='验证集位置')
 parser.add_argument('--test_path', dest='test_path', default='../data/raw/testset.txt', type=str, help='测试集位置')
 parser.add_argument('--glove_path', dest='glove_path', default='../data/raw/glove.840B.300d.txt', type=str, help='预训练的词向量位置')

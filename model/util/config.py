@@ -35,7 +35,7 @@ class Config(object):
     dims_prior = [200]  # 先验网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
 
     # 识别网络参数
-    dims_recognize = [200]  # 识别网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
+    dims_recognize = [250]  # 识别网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
 
     # 解码器参数
     decoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']

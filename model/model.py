@@ -38,13 +38,13 @@ class Model(nn.Module):
         # 先验网络
         self.prior_net = PriorNet(config.post_encoder_output_size,  # post输入维度
                                   config.dim_latent,  # 潜变量维度
-                                  config.prior_dims)  # 隐藏层维度
+                                  config.dims_prior)  # 隐藏层维度
 
         # 识别网络
         self.recognize_net = RecognizeNet(config.post_encoder_output_size,  # post输入维度
                                           config.response_encoder_output_size,  # response输入维度
                                           config.dim_latent,  # 潜变量维度
-                                          config.recognize_dims)  # 隐藏层维度
+                                          config.dims_recognize)  # 隐藏层维度
 
         # 初始化解码器状态
         self.prepare_state = PrepareState(config.post_encoder_output_size+config.dim_latent,
@@ -68,9 +68,9 @@ class Model(nn.Module):
 
 
     def forward(self, input,  # input
-                inference=False,
-                max_len=60,
-                gpu=False):
+                inference=False,  # 是否测试
+                max_len=60,  # 解码最大长度
+                gpu=False):  # 是否使用gpu
 
         id_post = input['post']  # [batch, seq]
         len_post = input['len_post']  # [batch]
@@ -86,10 +86,10 @@ class Model(nn.Module):
             # state = [layers, batch, dim]
             _, post_state = self.post_encoder(embed_post.transpose(0, 1), len_post)
 
-            if isinstance(post_state, tuple):
-                post_state = post_state[0]
+            if isinstance(post_state, tuple):  # 如果是lstm则取h
+                post_state = post_state[0]  # [layers, batch, dim]
 
-            x = post_state[-1, :, :]  # [batch, dim]
+            x = post_state[-1, :, :]  # 取最后一层 [batch, dim]
 
             # p(z|x)
             _mu, _logvar = self.prior_net(x)  # [batch, latent]
@@ -106,14 +106,21 @@ class Model(nn.Module):
             first_state = self.prepare_state(torch.cat([z, x], 1))  # [num_layer, batch, dim_out]
 
             outputs = []
-            done = torch.BoolTensor([0]*batch_size)  # 句子解码完成标志
+
+            if gpu:
+                done = torch.BoolTensor([0]*batch_size).cuda()  # 句子解码完成标志
+            else:
+                done = torch.BoolTensor([0]*batch_size)
 
             for idx in range(max_len):
 
-                if idx == 0:
+                if idx == 0:  # 第一个时间步
                     state = first_state  # 解码器初始状态
-                    id_input = torch.ones((1, batch_size))*self.config.start_id
-                    input = self.embedding(id_input)  # (1, batch, embed_size)
+                    if gpu:
+                        id_input = (torch.ones((1, batch_size))*self.config.start_id).long().cuda()
+                    else:
+                        id_input = (torch.ones((1, batch_size)) * self.config.start_id).long()
+                    input = self.embedding(id_input)  # 解码器初始输入 [1, batch, embed_size]
 
                 # output: [1, batch, dim_out]
                 # state: [num_layer, batch, dim_out]
@@ -122,21 +129,22 @@ class Model(nn.Module):
                 outputs.append(output)
 
                 vocab_prob = self.projector(output)  # [1, batch, num_vocab]
-                next_input_id = torch.argmax(vocab_prob, 2)  # [1, batch]
+                next_input_id = torch.argmax(vocab_prob, 2)  # 选择概率最大的词作为下个时间步的输入 [1, batch]
 
-                _done = next_input_id.squeeze(0) == self.config.end_id  # [batch]
-                done = done | _done
+                _done = next_input_id.squeeze(0) == self.config.end_id  # 当前时间步完成解码的 [batch]
+                done = done | _done  # 所有完成解码的
 
                 if done.sum() == batch_size:  # 如果全部解码完成则提前停止
 
                     break
+
                 else:
 
                     input = self.embedding(next_input_id)  # [1, batch, embed_size]
 
-            outputs = torch.cat(outputs, 0).transpose(0, 1)
+            outputs = torch.cat(outputs, 0).transpose(0, 1)  # [batch, seq, dim_out]
 
-            output_vocab = self.projector(outputs)
+            output_vocab = self.projector(outputs)  # [batch, seq, num_vocab]
 
             return output_vocab, _mu, _logvar, None, None
 
@@ -145,9 +153,10 @@ class Model(nn.Module):
             embed_post = self.embedding(id_post)  # [batch, seq, embed_size]
             embed_response = self.embedding(id_response)  # [batch, seq, embed_size]
 
+            # 解码器的输入为回复去掉end_id
             decoder_input = embed_response[:, :-1, :].transpose(0, 1)  # [seq-1, batch, embed_size]
-            len_decoder = decoder_input.size()[0]  # seq-1
-            decoder_input = decoder_input.split([1] * len_decoder, 0)  # seq-1个[1, batch, embed_size]
+            len_decoder = decoder_input.size()[0]  # 解码长度 seq-1
+            decoder_input = decoder_input.split([1] * len_decoder, 0)  # 解码器每一步的输入 seq-1个[1, batch, embed_size]
 
             # state = [layers, batch, dim]
             _, post_state = self.post_encoder(embed_post.transpose(0, 1), len_post)
@@ -183,7 +192,8 @@ class Model(nn.Module):
 
             for idx in range(len_decoder):
 
-                state = first_state  # 解码器初始状态
+                if idx == 0:
+                    state = first_state  # 解码器初始状态
 
                 input = decoder_input[idx]  # 当前时间步输入 [1, batch, embed_size]
 

@@ -26,11 +26,11 @@ class RecognizeNet(nn.Module):
         # 多层感知机
         for idx, (input, output) in enumerate(zip(dims_input[:-1], dims_output[:-1])):
 
-            self.mlp.add_module('RecognizeNet/Linear%d' % idx, nn.Linear(input, output))
-            self.mlp.add_module('RecognizeNet/Tanh%d' % idx, nn.Tanh())
+            self.mlp.add_module('linear%d' % idx, nn.Linear(input, output))  # 线性层
+            self.mlp.add_module('activate%d' % idx, nn.Tanh())  # 激活层
 
-        # 多层感知机输出层
-        self.mlp.add_module('RecognizeNet/Linear%d' % idx, nn.Linear(input, output))
+            # 多层感知机输出层
+        self.mlp.add_module('output', nn.Linear(dims_input[-1], dims_output[-1]))
 
 
 

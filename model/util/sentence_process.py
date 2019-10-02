@@ -35,6 +35,25 @@ class SentenceProcess(object):
 
         return id_sentence
 
+        # 将句子转化成id表示并补齐到length长度
+
+    def index2word(self, id_sentence):
+
+        sentence = []
+
+        for idx in id_sentence:
+
+            if idx == self.end_id:
+                break
+            else:
+                sentence.append(self.vocab[idx])
+
+        return sentence
+
+
+
+
+
 
 
 
