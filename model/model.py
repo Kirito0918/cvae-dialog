@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from Embedding import WordEmbedding
-from Encoder import SentenseEncoder
+from Encoder import Encoder
 from PriorNet import PriorNet
 from RecognizeNet import RecognizeNet
 from Decoder import Decoder
@@ -16,47 +16,47 @@ class Model(nn.Module):
 
         # 定义嵌入层
         self.embedding = WordEmbedding(config.num_vocab,  # 词汇表大小
-                                       config.embed_size,  # 嵌入层维度
+                                       config.embedding_size,  # 嵌入层维度
                                        config.pad_id)  # padid
 
         # post编码器
-        self.post_encoder = SentenseEncoder(config.post_encoder_cell_type,  # rnn类型
-                                            config.embed_size,  # 输入维度
-                                            config.post_encoder_output_size,  # 输出维度
-                                            config.post_encoder_num_layer,  # rnn层数
-                                            config.post_encoder_bidirection,  # 是否双向
-                                            config.dropout)  # dropout概率
+        self.post_encoder = Encoder(config.post_encoder_cell_type,  # rnn类型
+                                    config.embedding_size,  # 输入维度
+                                    config.post_encoder_output_size,  # 输出维度
+                                    config.post_encoder_num_layers,  # rnn层数
+                                    config.post_encoder_bidirectional,  # 是否双向
+                                    config.dropout)  # dropout概率
 
         # response编码器
-        self.response_encoder = SentenseEncoder(config.post_encoder_cell_type,  # rnn类型
-                                                config.embed_size,  # 输入维度
-                                                config.post_encoder_output_size,  # 输出维度
-                                                config.post_encoder_num_layer,  # rnn层数
-                                                config.post_encoder_bidirection,  # 是否双向
-                                                config.dropout)  # dropout概率
+        self.response_encoder = Encoder(config.post_encoder_cell_type,
+                                        config.embedding_size,  # 输入维度
+                                        config.post_encoder_output_size,  # 输出维度
+                                        config.post_encoder_num_layers,  # rnn层数
+                                        config.post_encoder_bidirectional,  # 是否双向
+                                        config.dropout)  # dropout概率
 
         # 先验网络
         self.prior_net = PriorNet(config.post_encoder_output_size,  # post输入维度
-                                  config.dim_latent,  # 潜变量维度
+                                  config.latent_size,  # 潜变量维度
                                   config.dims_prior)  # 隐藏层维度
 
         # 识别网络
         self.recognize_net = RecognizeNet(config.post_encoder_output_size,  # post输入维度
                                           config.response_encoder_output_size,  # response输入维度
-                                          config.dim_latent,  # 潜变量维度
+                                          config.latent_size,  # 潜变量维度
                                           config.dims_recognize)  # 隐藏层维度
 
         # 初始化解码器状态
-        self.prepare_state = PrepareState(config.post_encoder_output_size+config.dim_latent,
+        self.prepare_state = PrepareState(config.post_encoder_output_size+config.latent_size,
                                           config.decoder_cell_type,
                                           config.decoder_output_size,
-                                          config.decoder_num_layer)
+                                          config.decoder_num_layers)
 
         # 解码器
         self.decoder = Decoder(config.decoder_cell_type,  # rnn类型
-                               config.embed_size,  # 输入维度
+                               config.embedding_size,  # 输入维度
                                config.decoder_output_size,  # 输出维度
-                               config.decoder_num_layer,  # rnn层数
+                               config.decoder_num_layers,  # rnn层数
                                config.dropout)  # dropout概率)
 
         # 输出层
@@ -72,36 +72,36 @@ class Model(nn.Module):
                 max_len=60,  # 解码最大长度
                 gpu=False):  # 是否使用gpu
 
-        id_post = input['posts']  # [batch, seq]
-        len_post = input['len_posts']  # [batch]
-        id_response = input['responses']  # [batch, seq]
-        len_response = input['len_responses']  # [batch, seq]
+        id_posts = input['posts']  # [batch, seq]
+        len_posts = input['len_posts']  # [batch]
+        id_responses = input['responses']  # [batch, seq]
+        len_responses = input['len_responses']  # [batch, seq]
 
-        batch_size = id_post.size()[0]
+        batch_size = id_posts.size()[0]
 
         if inference:  # 测试
 
-            embed_post = self.embedding(id_post)  # [batch, seq, embed_size]
+            embed_posts = self.embedding(id_posts)  # [batch, seq, embed_size]
 
             # state = [layers, batch, dim]
-            _, post_state = self.post_encoder(embed_post.transpose(0, 1), len_post)
+            _, state_posts = self.post_encoder(embed_posts.transpose(0, 1), len_posts)
 
-            if isinstance(post_state, tuple):  # 如果是lstm则取h
-                post_state = post_state[0]  # [layers, batch, dim]
+            if isinstance(state_posts, tuple):  # 如果是lstm则取h
+                state_posts = state_posts[0]  # [layers, batch, dim]
 
-            x = post_state[-1, :, :]  # 取最后一层 [batch, dim]
+            x = state_posts[-1, :, :]  # 取最后一层 [batch, dim]
 
             # p(z|x)
             _mu, _logvar = self.prior_net(x)  # [batch, latent]
 
             # 采样
             if gpu:
-                nz = torch.randn((batch_size, self.config.dim_latent)).cuda()  # [batch, latent]
+                nz = torch.randn((batch_size, self.config.latent_size)).cuda()  # [batch, latent]
             else:
-                nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
+                nz = torch.randn((batch_size, self.config.latent_size))  # [batch, latent]
 
             # 重参数化
-            z = _mu + torch.exp(0.5 * _logvar) * nz  # [batch, latent]
+            z = _mu + (0.5 * _logvar).exp() * nz  # [batch, latent]
 
             first_state = self.prepare_state(torch.cat([z, x], 1))  # [num_layer, batch, dim_out]
 
@@ -117,13 +117,13 @@ class Model(nn.Module):
                 if idx == 0:  # 第一个时间步
                     state = first_state  # 解码器初始状态
                     if gpu:
-                        id_input = (torch.ones((1, batch_size))*self.config.start_id).long().cuda()
+                        first_input_id = (torch.ones((1, batch_size))*self.config.start_id).long().cuda()
                     else:
-                        id_input = (torch.ones((1, batch_size)) * self.config.start_id).long()
-                    input = self.embedding(id_input)  # 解码器初始输入 [1, batch, embed_size]
+                        first_input_id = (torch.ones((1, batch_size)) * self.config.start_id).long()
+                    input = self.embedding(first_input_id)  # 解码器初始输入 [1, batch, embed_size]
 
                 # output: [1, batch, dim_out]
-                # state: [num_layer, batch, dim_out]
+                # state: [num_layers, batch, dim_out]
                 output, state = self.decoder(input, state)
 
                 outputs.append(output)
@@ -150,26 +150,26 @@ class Model(nn.Module):
 
         else:  # 训练
 
-            embed_post = self.embedding(id_post)  # [batch, seq, embed_size]
-            embed_response = self.embedding(id_response)  # [batch, seq, embed_size]
+            embed_posts = self.embedding(id_posts)  # [batch, seq, embed_size]
+            embed_responses = self.embedding(id_responses)  # [batch, seq, embed_size]
 
             # 解码器的输入为回复去掉end_id
-            decoder_input = embed_response[:, :-1, :].transpose(0, 1)  # [seq-1, batch, embed_size]
+            decoder_input = embed_responses[:, :-1, :].transpose(0, 1)  # [seq-1, batch, embed_size]
             len_decoder = decoder_input.size()[0]  # 解码长度 seq-1
             decoder_input = decoder_input.split([1] * len_decoder, 0)  # 解码器每一步的输入 seq-1个[1, batch, embed_size]
 
             # state = [layers, batch, dim]
-            _, post_state = self.post_encoder(embed_post.transpose(0, 1), len_post)
-            _, response_state = self.response_encoder(embed_response.transpose(0, 1), len_response)
+            _, state_posts = self.post_encoder(embed_posts.transpose(0, 1), len_posts)
+            _, state_responses = self.response_encoder(embed_responses.transpose(0, 1), len_responses)
 
-            if isinstance(post_state, tuple):
-                post_state = post_state[0]
+            if isinstance(state_posts, tuple):
+                state_posts = state_posts[0]
 
-            if isinstance(response_state, tuple):
-                response_state = response_state[0]
+            if isinstance(state_responses, tuple):
+                state_responses = state_responses[0]
 
-            x = post_state[-1, :, :]  # [batch, dim]
-            y = response_state[-1, :, :]  # [batch, dim]
+            x = state_posts[-1, :, :]  # [batch, dim]
+            y = state_responses[-1, :, :]  # [batch, dim]
 
             # p(z|x)
             _mu, _logvar = self.prior_net(x)  # [batch, latent]
@@ -179,12 +179,12 @@ class Model(nn.Module):
 
             # 采样
             if gpu:
-                nz = torch.randn((batch_size, self.config.dim_latent)).cuda()  # [batch, latent]
+                nz = torch.randn((batch_size, self.config.latent_size)).cuda()  # [batch, latent]
             else:
-                nz = torch.randn((batch_size, self.config.dim_latent))  # [batch, latent]
+                nz = torch.randn((batch_size, self.config.latent_size))  # [batch, latent]
 
             # 重参数化
-            z = mu + torch.exp(0.5*logvar) * nz  # [batch, latent]
+            z = mu + (0.5*logvar).exp() * nz  # [batch, latent]
 
             first_state = self.prepare_state(torch.cat([z, x], 1))  # [num_layer, batch, dim_out]
 

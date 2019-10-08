@@ -3,32 +3,31 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 # 编码器
-class SentenseEncoder(nn.Module):
+class Encoder(nn.Module):
 
     def __init__(self, cell_type,  # rnn类型
                  input_size,  # 输入维度
                  output_size,  # 输出维度
-                 num_layer,  # rnn层数
-                 bidirection=False,  # 是否双向
+                 num_layers,  # rnn层数
+                 bidirectional=False,  # 是否双向
                  dropout=0):  # dropout
-        super(SentenseEncoder, self).__init__()
+        super(Encoder, self).__init__()
 
         assert cell_type in ['GRU', 'LSTM']  # 限定rnn类型
 
-        if bidirection:  # 如果双向
+        if bidirectional:  # 如果双向
             assert output_size % 2 == 0
             cell_size = output_size // 2  # rnn维度
         else:
             cell_size = output_size
 
-        self.bidirection = bidirection
+        self.bidirectional = bidirectional
         self.cell_type = cell_type
-        self.rnncell = getattr(nn, cell_type)(  # rnncell
-            input_size=input_size,
-            hidden_size=cell_size,
-            num_layers=num_layer,
-            bidirectional=bidirection,
-            dropout=dropout)
+        self.rnncell = getattr(nn, cell_type)(input_size=input_size,
+                                              hidden_size=cell_size,
+                                              num_layers=num_layers,
+                                              bidirectional=bidirectional,
+                                              dropout=dropout)
 
     def forward(self, input,  # [seq, batch, dim]
                 length):  # [batch]
@@ -41,7 +40,7 @@ class SentenseEncoder(nn.Module):
 
         output = pad_packed_sequence(output)[0]  #
 
-        if self.bidirection:  # 如果是双向的，对双向进行拼接作为每层的最终状态
+        if self.bidirectional:  # 如果是双向的，对双向进行拼接作为每层的最终状态
 
             if self.cell_type == 'gru':
                 final_state_forward = final_state[0::2, :, :]  # [layers, batch, dim]

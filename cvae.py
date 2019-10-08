@@ -63,11 +63,11 @@ def main():
             word = line[: line.find(' ')]
             vec = line[line.find(' ') + 1:].split()
             embed = [float(v) for v in vec]
-            assert len(embed) == config.embed_size  # 检测词向量维度
+            assert len(embed) == config.embedding_size  # 检测词向量维度
             vocab.append(word)
             embeds.append(embed)
     print('载入词汇表: %d个' % len(vocab))
-    print('词向量维度: %d' % config.embed_size)
+    print('词向量维度: %d' % config.embedding_size)
 
     # 通过词汇表构建一个word2index和index2word的工具
     sentence_processor = SentenceProcessor(vocab, config.pad_id, config.start_id, config.end_id, config.unk_id)
