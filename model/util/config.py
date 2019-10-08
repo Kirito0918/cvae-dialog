@@ -29,7 +29,7 @@ class Config(object):
     response_encoder_bidirection = True
 
     # 潜变量参数
-    dim_latent = 100  # 潜变量的维度
+    dim_latent = 200  # 潜变量的维度
 
     # 先验网络参数
     dims_prior = [200]  # 先验网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
@@ -49,7 +49,7 @@ class Config(object):
     lr_decay = 1.0  # 学习率衰减，每过1个epoch衰减的百分比
     weight_decay = 0  # 权值decay
     max_grad_norm = 5
-    kl_step = 40000  # 更新多少次参数之后kl项权值达到1
+    kl_step = 10000  # 更新多少次参数之后kl项权值达到1
     dropout = 0  # 这里只有编解码器设置了dropout
 
 

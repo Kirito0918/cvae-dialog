@@ -72,10 +72,10 @@ class Model(nn.Module):
                 max_len=60,  # 解码最大长度
                 gpu=False):  # 是否使用gpu
 
-        id_post = input['post']  # [batch, seq]
-        len_post = input['len_post']  # [batch]
-        id_response = input['response']  # [batch, seq]
-        len_response = input['len_response']  # [batch, seq]
+        id_post = input['posts']  # [batch, seq]
+        len_post = input['len_posts']  # [batch]
+        id_response = input['responses']  # [batch, seq]
+        len_response = input['len_responses']  # [batch, seq]
 
         batch_size = id_post.size()[0]
 
