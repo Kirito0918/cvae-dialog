@@ -22,12 +22,12 @@ parser.add_argument('--result_path', dest='result_path', default='result', type=
 parser.add_argument('--print_per_step', dest='print_per_step', default=100, type=int, help='每更新多少次参数summary学习情况')
 parser.add_argument('--log_per_step', dest='log_per_step', default=30000, type=int, help='每更新多少次参数保存模型')
 parser.add_argument('--log_path', dest='log_path', default='log', type=str, help='记录模型位置')
-parser.add_argument('--inference', dest='inference', default=False, type=bool, help='是否测试')  #
+parser.add_argument('--inference', dest='inference', default=True, type=bool, help='是否测试')  #
 parser.add_argument('--max_len', dest='max_len', default=60, type=int, help='测试时最大解码步数')
-parser.add_argument('--model_path', dest='model_path', default='log/run/.model', type=str, help='载入模型位置')  #
+parser.add_argument('--model_path', dest='model_path', default='log/run1570265897/001000000105756.model', type=str, help='载入模型位置')  #
 parser.add_argument('--seed', dest='seed', default=666, type=int, help='随机种子')  #
 parser.add_argument('--gpu', dest='gpu', default=True, type=bool, help='是否使用gpu')  #
-parser.add_argument('--max_epoch', dest='max_epoch', default=30, type=int, help='最大训练epoch')
+parser.add_argument('--max_epoch', dest='max_epoch', default=4, type=int, help='最大训练epoch')
 
 args = parser.parse_args()  # 程序运行参数
 
