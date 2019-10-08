@@ -10,7 +10,7 @@ word_frequency_statistics.py 可以用来统计数据集的词频
 2、cvae.py进行训练
     model\util\config.py更改模型参数
 
-把data_util和model文件右键Mark Directory as Source Root
+把data_util、model、model/util文件右键Mark Directory as Source Root
 
 查看日志
 
