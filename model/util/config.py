@@ -14,22 +14,22 @@ class Config(object):
     num_vocab = 39000
 
     # 嵌入层参数，如果载入预训练的词向量，就由词向量的维度决定
-    embed_size = 300
+    embedding_size = 300
 
     # post编码器参数
     post_encoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']
     post_encoder_output_size = 300  # 隐藏层大小
-    post_encoder_num_layer = 2  # 层数
-    post_encoder_bidirection = True  # 是否是双向rnn
+    post_encoder_num_layers = 2  # 层数
+    post_encoder_bidirectional = True  # 是否是双向rnn
 
     # response编码器参数
     response_encoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']
     response_encoder_output_size = 300
-    response_encoder_num_layer = 2
-    response_encoder_bidirection = True
+    response_encoder_num_layers = 2
+    response_encoder_bidirectional = True
 
     # 潜变量参数
-    dim_latent = 200  # 潜变量的维度
+    latent_size = 200  # 潜变量的维度
 
     # 先验网络参数
     dims_prior = [200]  # 先验网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
@@ -40,7 +40,7 @@ class Config(object):
     # 解码器参数
     decoder_cell_type = 'LSTM'  # in ['GRU', 'LSTM']
     decoder_output_size = 300  # 隐藏层大小
-    decoder_num_layer = 2  # 层数
+    decoder_num_layers = 2  # 层数
 
     # 优化参数
     batch_size = 32
