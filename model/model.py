@@ -17,7 +17,7 @@ class Model(nn.Module):
         # 定义嵌入层
         self.embedding = WordEmbedding(config.num_vocab,  # 词汇表大小
                                        config.embedding_size,  # 嵌入层维度
-                                       config.pad_id)  # padid
+                                       config.pad_id)  # pad_id
 
         # post编码器
         self.post_encoder = Encoder(config.post_encoder_cell_type,  # rnn类型
@@ -66,89 +66,17 @@ class Model(nn.Module):
         )
 
 
-
-    def forward(self, input,  # input
+    def forward(self, input,
                 inference=False,  # 是否测试
-                max_len=60,  # 解码最大长度
-                gpu=False):  # 是否使用gpu
+                max_len=60):  # 解码的最大长度
 
-        id_posts = input['posts']  # [batch, seq]
-        len_posts = input['len_posts']  # [batch]
-        id_responses = input['responses']  # [batch, seq]
-        len_responses = input['len_responses']  # [batch, seq]
+        if not inference:  # 训练
 
-        batch_size = id_posts.size()[0]
-
-        if inference:  # 测试
-
-            embed_posts = self.embedding(id_posts)  # [batch, seq, embed_size]
-
-            # state = [layers, batch, dim]
-            _, state_posts = self.post_encoder(embed_posts.transpose(0, 1), len_posts)
-
-            if isinstance(state_posts, tuple):  # 如果是lstm则取h
-                state_posts = state_posts[0]  # [layers, batch, dim]
-
-            x = state_posts[-1, :, :]  # 取最后一层 [batch, dim]
-
-            # p(z|x)
-            _mu, _logvar = self.prior_net(x)  # [batch, latent]
-
-            # 采样
-            if gpu:
-                nz = torch.randn((batch_size, self.config.latent_size)).cuda()  # [batch, latent]
-            else:
-                nz = torch.randn((batch_size, self.config.latent_size))  # [batch, latent]
-
-            # 重参数化
-            z = _mu + (0.5 * _logvar).exp() * nz  # [batch, latent]
-
-            first_state = self.prepare_state(torch.cat([z, x], 1))  # [num_layer, batch, dim_out]
-
-            outputs = []
-
-            if gpu:
-                done = torch.BoolTensor([0]*batch_size).cuda()  # 句子解码完成标志
-            else:
-                done = torch.BoolTensor([0]*batch_size)
-
-            for idx in range(max_len):
-
-                if idx == 0:  # 第一个时间步
-                    state = first_state  # 解码器初始状态
-                    if gpu:
-                        first_input_id = (torch.ones((1, batch_size))*self.config.start_id).long().cuda()
-                    else:
-                        first_input_id = (torch.ones((1, batch_size)) * self.config.start_id).long()
-                    input = self.embedding(first_input_id)  # 解码器初始输入 [1, batch, embed_size]
-
-                # output: [1, batch, dim_out]
-                # state: [num_layers, batch, dim_out]
-                output, state = self.decoder(input, state)
-
-                outputs.append(output)
-
-                vocab_prob = self.projector(output)  # [1, batch, num_vocab]
-                next_input_id = torch.argmax(vocab_prob, 2)  # 选择概率最大的词作为下个时间步的输入 [1, batch]
-
-                _done = next_input_id.squeeze(0) == self.config.end_id  # 当前时间步完成解码的 [batch]
-                done = done | _done  # 所有完成解码的
-
-                if done.sum() == batch_size:  # 如果全部解码完成则提前停止
-
-                    break
-
-                else:
-
-                    input = self.embedding(next_input_id)  # [1, batch, embed_size]
-
-            outputs = torch.cat(outputs, 0).transpose(0, 1)  # [batch, seq, dim_out]
-
-            output_vocab = self.projector(outputs)  # [batch, seq, num_vocab]
-
-            return output_vocab, _mu, _logvar, None, None
-
-        else:  # 训练
+            id_posts = input['posts']  # [batch, seq]
+            len_posts = input['len_posts']  # [batch]
+            id_responses = input['responses']  # [batch, seq]
+            len_responses = input['len_responses']  # [batch, seq]
+            sampled_latents = input['sampled_latents']  # [batch, latent_size]
 
             embed_posts = self.embedding(id_posts)  # [batch, seq, embed_size]
             embed_responses = self.embedding(id_responses)  # [batch, seq, embed_size]
@@ -177,14 +105,8 @@ class Model(nn.Module):
             # p(z|x,y)
             mu, logvar = self.recognize_net(x, y)  # [batch, latent]
 
-            # 采样
-            if gpu:
-                nz = torch.randn((batch_size, self.config.latent_size)).cuda()  # [batch, latent]
-            else:
-                nz = torch.randn((batch_size, self.config.latent_size))  # [batch, latent]
-
             # 重参数化
-            z = mu + (0.5*logvar).exp() * nz  # [batch, latent]
+            z = mu + (0.5 * logvar).exp() * sampled_latents  # [batch, latent]
 
             first_state = self.prepare_state(torch.cat([z, x], 1))  # [num_layer, batch, dim_out]
 
@@ -208,6 +130,72 @@ class Model(nn.Module):
             output_vocab = self.projector(outputs)  # [batch, seq-1, num_vocab]
 
             return output_vocab, _mu, _logvar, mu, logvar
+
+        else:  # 测试
+
+            id_posts = input['posts']  # [batch, seq]
+            len_posts = input['len_posts']  # [batch]
+            sampled_latents = input['sampled_latents']  # [batch, latent_size]
+            batch_size = id_posts.size()[0]
+            device = id_posts.device.type
+
+            embed_posts = self.embedding(id_posts)  # [batch, seq, embed_size]
+
+            # state = [layers, batch, dim]
+            _, state_posts = self.post_encoder(embed_posts.transpose(0, 1), len_posts)
+
+            if isinstance(state_posts, tuple):  # 如果是lstm则取h
+                state_posts = state_posts[0]  # [layers, batch, dim]
+
+            x = state_posts[-1, :, :]  # 取最后一层 [batch, dim]
+
+            # p(z|x)
+            _mu, _logvar = self.prior_net(x)  # [batch, latent]
+
+            # 重参数化
+            z = _mu + (0.5 * _logvar).exp() * sampled_latents  # [batch, latent]
+
+            first_state = self.prepare_state(torch.cat([z, x], 1))  # [num_layer, batch, dim_out]
+
+            outputs = []
+
+            done = torch.BoolTensor([0] * batch_size)
+            first_input_id = (torch.ones((1, batch_size)) * self.config.start_id).long()
+            if device == 'cuda':
+                done = done.cuda()
+                first_input_id = first_input_id.cuda()
+
+            for idx in range(max_len):
+
+                if idx == 0:  # 第一个时间步
+                    state = first_state  # 解码器初始状态
+                    input = self.embedding(first_input_id)  # 解码器初始输入 [1, batch, embed_size]
+
+                # output: [1, batch, dim_out]
+                # state: [num_layers, batch, dim_out]
+                output, state = self.decoder(input, state)
+
+                outputs.append(output)
+
+                vocab_prob = self.projector(output)  # [1, batch, num_vocab]
+                next_input_id = torch.argmax(vocab_prob, 2)  # 选择概率最大的词作为下个时间步的输入 [1, batch]
+
+                _done = next_input_id.squeeze(0) == self.config.end_id  # 当前时间步完成解码的 [batch]
+                done = done | _done  # 所有完成解码的
+
+                if done.sum() == batch_size:  # 如果全部解码完成则提前停止
+
+                    break
+
+                else:
+
+                    input = self.embedding(next_input_id)  # [1, batch, embed_size]
+
+            outputs = torch.cat(outputs, 0).transpose(0, 1)  # [batch, seq, dim_out]
+
+            output_vocab = self.projector(outputs)  # [batch, seq, num_vocab]
+
+            return output_vocab, _mu, _logvar, None, None
 
     # 统计参数
     def print_parameters(self):

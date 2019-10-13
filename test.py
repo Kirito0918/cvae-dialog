@@ -1,22 +1,14 @@
 """
     只是用来测试一些api
 """
-import os
-import time
-import random
-import numpy
 import torch
 
-a = [0, 1, 2, 3]
-b = a
-random.shuffle(b)
-print(type(a))
+a = [1, 2, 3]
+b = [4, 5, 6]
 
-path = os.path.split('log/run1570549901/013000001410000.model')
-print(path)
+c = a + b
+a.extend(b)
 
-
-
-
-
+print(c)
+print(a)
 
