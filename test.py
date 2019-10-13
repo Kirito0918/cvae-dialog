@@ -12,6 +12,9 @@ b = a
 random.shuffle(b)
 print(type(a))
 
+path = os.path.split('log/run1570549901/013000001410000.model')
+print(path)
+
 
 
 

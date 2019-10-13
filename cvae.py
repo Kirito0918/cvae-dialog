@@ -21,9 +21,9 @@ parser.add_argument('--result_path', dest='result_path', default='result', type=
 parser.add_argument('--print_per_step', dest='print_per_step', default=100, type=int, help='每更新多少次参数summary学习情况')
 parser.add_argument('--log_per_step', dest='log_per_step', default=30000, type=int, help='每更新多少次参数保存模型')
 parser.add_argument('--log_path', dest='log_path', default='log', type=str, help='记录模型位置')
-parser.add_argument('--inference', dest='inference', default=False, type=bool, help='是否测试')  #
+parser.add_argument('--inference', dest='inference', default=True, type=bool, help='是否测试')  #
 parser.add_argument('--max_len', dest='max_len', default=60, type=int, help='测试时最大解码步数')
-parser.add_argument('--model_path', dest='model_path', default='log//', type=str, help='载入模型位置')  #
+parser.add_argument('--model_path', dest='model_path', default='log/run1570549901/017000001890000.model', type=str, help='载入模型位置')  #
 parser.add_argument('--seed', dest='seed', default=666, type=int, help='随机种子')  #
 parser.add_argument('--gpu', dest='gpu', default=True, type=bool, help='是否使用gpu')  #
 parser.add_argument('--max_epoch', dest='max_epoch', default=20, type=int, help='最大训练epoch')
@@ -81,12 +81,18 @@ def main():
     if os.path.isfile(args.model_path):  # 如果载入模型的位置存在则载入模型
         epoch, global_step = model.load_model(args.model_path)
         print('载入模型完成')
+        # 记录模型的文件夹
+        log_dir = os.path.split(args.model_path)[0]
     elif args.inference:  # 如果载入模型的位置不存在，但是又要测试，这是没有意义的
         print('请测试一个训练过的模型!')
         return
     else:  # 如果载入模型的位置不存在，重新开始训练，则载入预训练的词向量
         model.embedding.embedding.weight = torch.nn.Parameter(torch.FloatTensor(embeds))
         print('初始化模型完成')
+        # 记录模型的文件夹
+        log_dir = os.path.join(args.log_path, 'run' + str(int(time.time())))
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
 
     if args.gpu:
         model.to('cuda')  # 将模型参数转到gpu
@@ -100,11 +106,6 @@ def main():
 
     # 训练
     if not args.inference:
-
-        # 创建记录模型的文件夹
-        log_dir = os.path.join(args.log_path, 'run' + str(int(time.time())))
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
 
         summary_writer = SummaryWriter(os.path.join(log_dir, 'summary'))  # 创建tensorboard记录的文件夹
 
