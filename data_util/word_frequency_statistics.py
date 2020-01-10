@@ -4,7 +4,7 @@ import os
 import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--file_path', dest='file_path', default='../data/raw/trainset_cut300000.txt', type=str, help='输入需要统计词频的数据集')
+parser.add_argument('--file_path', dest='file_path', default='../data/raw/trainset.txt', type=str, help='输入需要统计词频的数据集')
 args = parser.parse_args()
 
 
