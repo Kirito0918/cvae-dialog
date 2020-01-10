@@ -1,17 +1,13 @@
-"""
-    模型参数的类
-"""
 
 class Config(object):
-
-    # 这些不需要改，由数据的预处理决定了，如果改预处理再改这里
+    r""" 模型参数的类 """
     pad_id = 0
     start_id = 1
     end_id = 2
     unk_id = 3
 
     # 词汇表大小，根据预处理截取的词汇表设置
-    num_vocab = 39000
+    num_vocab = 35000
 
     # 嵌入层参数，如果载入预训练的词向量，就由词向量的维度决定
     embedding_size = 300
@@ -32,7 +28,7 @@ class Config(object):
     latent_size = 200  # 潜变量的维度
 
     # 先验网络参数
-    dims_prior = [200]  # 先验网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
+    dims_prior = [250]  # 先验网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
 
     # 识别网络参数
     dims_recognize = [250]  # 识别网络多层感知机中间层的隐藏单元数，像[dim1, dim2,...,dimn]这样传入
@@ -50,7 +46,7 @@ class Config(object):
     weight_decay = 0  # 权值decay
     max_grad_norm = 5
     kl_step = 10000  # 更新多少次参数之后kl项权值达到1
-    dropout = 0  # 这里只有编解码器设置了dropout
+    dropout = 0.0  # 这里只有编解码器设置了dropout
 
 
 

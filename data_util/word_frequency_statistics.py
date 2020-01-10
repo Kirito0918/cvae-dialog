@@ -1,7 +1,3 @@
-"""
-    统计词频的函数
-"""
-
 from collections import defaultdict
 import argparse
 import os
@@ -13,15 +9,12 @@ args = parser.parse_args()
 
 
 def statistics(fp):
-    """
-        对数据集进行统计
-
+    r""" 对数据集进行统计
     参数:
         fp: 数据集的位置
-
     返回:
         包含的词汇列表，按词频降序
-    """
+     """
     vocab = defaultdict(int)
 
     with open(fp, 'r', encoding='utf8') as fr:
@@ -46,13 +39,11 @@ def statistics(fp):
 
     vocab = dict(sorted(vocab.items(), key=lambda x: x[1], reverse=True))  # 词频降序排列
 
-    print('数据集位置: %s' % os.path.abspath(fp))
-    print('样本总数: %d' % data_num, end=', ')
-    print('post平均长度: %.2f' % (post_len / data_num), end=', ')
-    print('response平均长度: %.2f' % (response_len / data_num), end=', ')
-    print('包含词汇总数: %d' % len(vocab))
-    # print('词频:', vocab)
-    # print('词汇表:', vocab.keys())
+    print(f'数据集位置: {os.path.abspath(fp)}')
+    print(f'样本总数: {data_num}', end=', ')
+    print('post平均长度: {:.2f}'.format(post_len / data_num), end=', ')
+    print('response平均长度: {:.2f}'.format(response_len / data_num), end=', ')
+    print(f'包含词汇总数: {len(vocab)}')
 
     return list(vocab.keys())
 
